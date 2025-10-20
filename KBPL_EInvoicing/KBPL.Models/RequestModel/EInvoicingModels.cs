@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using KBPL.Models.Constants;
+using System;
+using System.Collections;
 using System.Collections.Generic;
-using KBPL.Models.Constants;
+using System.Text.RegularExpressions;
 
 namespace KBPL.Models.RequestModel
 {
@@ -9,41 +11,39 @@ namespace KBPL.Models.RequestModel
     {
         public EInvoiceModel()
         {
-            data_source = "ERP";
-            user_gstin = "27AAACV7785N1ZG";
-            document_details = new DocumentDetails();
-            transaction_details = new TransactionDetails();
-            seller_details = new SellerDetails();
-            buyer_details = new BuyerDetails();
-            dispatch_details = new DispatchDetails();
-            ship_details = new ShipDetails();
-            export_details = new ExportDeails();
-            payment_details = new PaymentDeails();
-            reference_details = new ReferenceDeails();
-            //Additional_document_details = new IEnumerable<Additional_document_details>();
-            value_details = new Value_details();
-            ewaybill_details = new Ewaybill_details();
-
+            //data_source = "ERP";
+            //user_gstin = "27AAACV7785N1ZG";
+            DocDtls = new DocumentDetails();
+            TranDtls = new TransactionDetails();
+            SellerDtls = new SellerDetails();
+            BuyerDtls = new BuyerDetails();
+            DispDtls = new DispatchDetails();
+            ShipDtls = new ShipDetails();
+            ExpDtls = new ExportDeails();
+            PayDtls = new PaymentDeails();
+            RefDtls = new ReferenceDeails();
+            //AddlDocDtls = new IEnumerable<Additional_document_details>();
+            ValDtls = new Value_details();
+            EwbDtls = new Ewaybill_details();
         }
 
 
-        public string access_token { get; set; }
-        public string user_gstin { get; set; }
-        public string data_source { get; set; }
-
-        public TransactionDetails transaction_details { get; set; }
-        public DocumentDetails document_details { get; set; }
-        public SellerDetails seller_details { get; set; }
-        public BuyerDetails buyer_details { get; set; }
-        public DispatchDetails dispatch_details { get; set; }
-        public ShipDetails ship_details { get; set; }
-        public ExportDeails export_details { get; set; }
-        public PaymentDeails payment_details { get; set; }
-        public ReferenceDeails reference_details { get; set; }
-        public IEnumerable<Additional_document_details> additional_document_details { get; set; }
-        public Value_details value_details { get; set; }
-        public Ewaybill_details ewaybill_details { get; set; }
-        public IEnumerable<ItemDetails> item_list { get; set; }
+        //public string access_token { get; set; }
+        //public string user_gstin { get; set; }
+        //public string data_source { get; set; }
+        public TransactionDetails TranDtls { get; set; }
+        public DocumentDetails DocDtls { get; set; }
+        public SellerDetails SellerDtls { get; set; }
+        public BuyerDetails BuyerDtls { get; set; }
+        public DispatchDetails DispDtls { get; set; }
+        public ShipDetails ShipDtls { get; set; }
+        public ExportDeails ExpDtls { get; set; }
+        public PaymentDeails PayDtls { get; set; }
+        public ReferenceDeails RefDtls { get; set; }
+        public IEnumerable<Additional_document_details> AddlDocDtls { get; set; }
+        public Value_details ValDtls { get; set; }
+        public Ewaybill_details EwbDtls { get; set; }
+        public IEnumerable<ItemDetails> ItemList { get; set; }
 
     }
 
@@ -52,244 +52,238 @@ namespace KBPL.Models.RequestModel
     {
         public TransactionDetails()
         {
-            supply_type = SupplyType.B2B.ToString();
-            charge_type = YesNoEnum.N.ToString();
-            igst_on_intra = YesNoEnum.N.ToString();
-            ecommerce_gstin = "";
+            SupTyp = SupplyType.B2B.ToString();
+            SupTyp = YesNoEnum.N.ToString();
+            IgstOnIntra = YesNoEnum.N.ToString();
+            EcmGstin = "";
+            RegRev = EcmGstin = TaxSch = "";
         }
-        public string supply_type { get; set; }
-        public string charge_type { get; set; }
-        public string igst_on_intra { get; set; }
-        public string ecommerce_gstin { get; set; }
+
+        public string TaxSch { get; set; }       // Tax Scheme, e.g., GST
+        public string SupTyp { get; set; }       // Supply Type, e.g., B2B
+        public string RegRev { get; set; }       // Reverse Charge (Y/N)
+        public string EcmGstin { get; set; }     // E-commerce GSTIN, can be null
+        public string IgstOnIntra { get; set; }  // IGST on Intra-state (Y/N)
 
     }
     public class DocumentDetails
     {
         public DocumentDetails()
         {
-            document_type = DocumentType.INV.ToString();
-            document_number = "";
-            document_date = "";
+            Typ = DocumentType.INV.ToString();
+            No = "";
+            Dt = "";
         }
-        public string document_type { get; set; }
-        public string document_number { get; set; }
-        public string document_date { get; set; }
+        public string Typ { get; set; }
+        public string No { get; set; }
+        public string Dt { get; set; }
 
     }
 
     public class SellerDetails
     {
-        public string gstin { get; set; }
-        public string legal_name { get; set; }
-        public string trade_name { get; set; }
-        public string address1 { get; set; }
-        public string address2 { get; set; }
-        public string location { get; set; }
-        public int pincode { get; set; }
-        public string state_code { get; set; }
-        public int? phone_number { get; set; }
-        public string email { get; set; }
+        public string Gstin { get; set; } = "";
+        public string LglNm { get; set; } = "";
+        public string TrdNm { get; set; } = "";
+        public string Addr1 { get; set; } = "";
+        public string Addr2 { get; set; } = ""; // Nullable
+        public string Loc { get; set; } = "";
+        public int Pin { get; set; }
+        public string Stcd { get; set; } = "";
+        public string Ph { get; set; } = "";  // Nullable
+        public string Em { get; set; } = "";
     }
 
     public class BuyerDetails
     {
-        public string gstin { get; set; }
-        public string legal_name { get; set; }
-        public string trade_name { get; set; }
-        public string address1 { get; set; }
-        public string address2 { get; set; }
-        public string location { get; set; }
-        public int pincode { get; set; }
-        public string place_of_supply { get; set; }
-        public string state_code { get; set; }
-        public int? phone_number { get; set; }
-        public string email { get; set; }
+        public string Gstin { get; set; } = "";
+        public string LglNm { get; set; } = "";
+        public string TrdNm { get; set; } = "";
+        public string Addr1 { get; set; } = "";
+        public string Addr2 { get; set; } = "";
+        public string Loc { get; set; } = "";
+        public int Pin { get; set; }
+        public string Pos { get; set; } = "";
+        public string Stcd { get; set; } = "";
+        public string Ph { get; set; } = "";
+        public string Em { get; set; } = "";
     }
 
     public class DispatchDetails
     {
-        public string company_name { get; set; }
-        public string address1 { get; set; }
-        public string address2 { get; set; }
-        public string location { get; set; }
-        public int pincode { get; set; }
-        public string state_code { get; set; }
+        public string Nm { get; set; } = "";
+        public string Addr1 { get; set; } = "";
+        public string Addr2 { get; set; } = "";
+        public string Loc { get; set; } = "";
+        public int Pin { get; set; }
+        public string Stcd { get; set; } = "";
     }
 
     public class ShipDetails
     {
-        public string gstin { get; set; }
-        public string legal_name { get; set; }
-        public string trade_name { get; set; }
-        public string address1 { get; set; }
-        public string address2 { get; set; }
-        public string location { get; set; }
-        public int pincode { get; set; }
-        public string state_code { get; set; }
+        public string Gstin { get; set; } = "";
+        public string LglNm { get; set; } = "";
+        public string TrdNm { get; set; } = "";
+        public string Addr1 { get; set; } = "";
+        public string Addr2 { get; set; } = "";
+        public string Loc { get; set; } = "";
+        public int Pin { get; set; }
+        public string Stcd { get; set; } = "";
     }
 
     public class ExportDeails
     {
-        public string ship_bill_number { get; set; }
-        public string ship_bill_date { get; set; }
-        public string country_code { get; set; }
-        public string foreign_currency { get; set; }
-        public string refund_claim { get; set; }
-        public string port_code { get; set; }
-        public double? export_duty { get; set; }
+        public string ShipBNo { get; set; } = "";     // Shipping Bill Number
+        public string ShipBDt { get; set; } = "";   // Shipping Bill Date (format: dd/MM/yyyy)
+        public string Port { get; set; } = "";      // Port Code
+        public string RefClm { get; set; } = "";     // Refund Claim (Y/N)
+        public string ForCur { get; set; } = "";     // Foreign Currency
+        public string CntCode { get; set; } = "";    // Country Code
+        public double? ExpDuty { get; set; }      // Export Duty - nullable
+
     }
 
     public class PaymentDeails
     {
-        public string bank_account_number { get; set; }
-        public double? paid_balance_amount { get; set; }
-        public int? credit_days { get; set; }
-        public string credit_transfer { get; set; }
-        public string direct_debit { get; set; }
-        public string branch_or_ifsc { get; set; }
-        public string payment_mode { get; set; }
-        public string payee_name { get; set; }
-        public double? outstanding_amount { get; set; }
-        public string payment_instruction { get; set; }
-        public string payment_term { get; set; }
+        public string Nm { get; set; } = "";      // Name of payer
+        public string Accdet { get; set; } = "";     // Account details
+        public string Mode { get; set; } = "";    // Payment mode (e.g., Cash)
+        public string Fininsbr { get; set; } = "";   // Financial institution branch code
+        public string Payterm { get; set; } = "";    // Payment terms
+        public string Payinstr { get; set; } = "";    // Payment instruction
+        public string Crtrn { get; set; } = "";    // Credit term (text)
+        public string Dirdr { get; set; } = "";    // Direction of draw (text)
+        public int Crday { get; set; }           // Credit days
+        public decimal Paidamt { get; set; }     // Paid amount
+        public decimal Paymtdue { get; set; }    // Payment due
     }
 
     public class ReferenceDeails
     {
-        public string invoice_remarks { get; set; }
-        public DocPeriodDetails document_period_details { get; set; }
-        public Preceding_document_details preceding_document_details { get; set; }
-        public Contract_details contract_details { get; set; }
+        public string InvRm { get; set; }
+        public DocPeriodDetails DocPerdDtls { get; set; }
+        public Preceding_document_details PrecDocDtls { get; set; }
+        public Contract_details ContrDtls { get; set; }
     }
 
     public class DocPeriodDetails
     {
-        public string invoice_period_start_date { get; set; }
-        public string invoice_period_end_date { get; set; }
+        public string invoice_period_start_date { get; set; } = "";
+        public string invoice_period_end_date { get; set; } = "";
     }
 
     public class Preceding_document_details
     {
-        public string reference_of_original_invoice { get; set; }
-        public string preceding_invoice_date { get; set; }
-        public string other_reference { get; set; }
+        public string InvNo { get; set; } = "";
+        public string InvDt { get; set; } = "";
+        public string OthRefNo { get; set; } = "";
     }
 
     public class Contract_details
     {
-        public string receipt_advice_number { get; set; }
-        public string receipt_advice_date { get; set; }
-        public string batch_reference_number { get; set; }
-        public string contract_reference_number { get; set; }
-        public string other_reference { get; set; }
-        public string project_reference_number { get; set; }
-        public string vendor_po_reference_number { get; set; }
-        public string vendor_po_reference_date { get; set; }
+        public string RecAdvRefr { get; set; } = "";// Receipt Advice Reference
+        public string RecAdvDt { get; set; } = "";   // Receipt Advice Date (format: dd/MM/yyyy)
+        public string Tendrefr { get; set; } = "";   // Tender Reference
+        public string Contrrefr { get; set; } = "";   // Contract Reference
+        public string Extrefr { get; set; } = "";    // External Reference
+        public string Projrefr { get; set; } = "";    // Project Reference
+        public string Porefr { get; set; } = "";     // Purchase Order Reference
+        public string PoRefDt { get; set; } = "";    // PO Reference Date (format: dd/MM/yyyy)
     }
 
     public class Additional_document_details
     {
-        public string supporting_document_url { get; set; }
-        public string supporting_document { get; set; }
-        public string additional_information { get; set; }
+        public string Url { get; set; } = "";
+        public string Docs { get; set; } = "";
+        public string Info { get; set; } = "";
     }
 
     public class Value_details
     {
-        public double total_assessable_value { get; set; }
-        public double total_cgst_value { get; set; }
-        public double total_sgst_value { get; set; }
-        public double total_igst_value { get; set; }
-        public double total_cess_value { get; set; }
-        public double? total_cess_value_of_state { get; set; }
-        public double total_discount { get; set; }
-        public double total_other_charge { get; set; }
-        public double total_invoice_value { get; set; }
-        public double? round_off_amount { get; set; }
-        public double? total_invoice_value_additional_currency { get; set; }
+
+        public decimal AssVal { get; set; }
+        public decimal CgstVal { get; set; }
+        public decimal SgstVal { get; set; }
+        public decimal IgstVal { get; set; }
+        public decimal CesVal { get; set; }
+        public decimal? StCesVal { get; set; }
+        public decimal Discount { get; set; }
+        public double OthChrg { get; set; }
+        public double RndOffAmt { get; set; }
+        public double TotInvVal { get; set; }
     }
 
     public class Ewaybill_details
     {
         public Ewaybill_details()
         {
-            transportation_mode = "1";
-            vehicle_type = "R";
+            TransMode = "1";
+            Vehtype = "R";
         }
-        public string transporter_id { get; set; }
-        public string transporter_name { get; set; }
-        public string transportation_mode { get; set; }
-        public string transportation_distance { get; set; }
-        public string transporter_document_number { get; set; }
-        public string transporter_document_date { get; set; }
-        public string vehicle_number { get; set; }
-        public string vehicle_type { get; set; }
+        public string Transid { get; set; } = "";     // Transporter ID
+        public string Transname { get; set; } = "";   // Transporter Name
+        public int Distance { get; set; }          // Distance in kilometers
+        public string Transdocno { get; set; } = "";   // Transport Document Number
+        public string TransdocDt { get; set; } = "";   // Transport Document Date (format: dd/MM/yyyy)
+        public string Vehno { get; set; } = "";      // Vehicle Number
+        public string Vehtype { get; set; } = "";    // Vehicle Type (R: Regular, O: Over-dimensional Cargo)
+        public string TransMode { get; set; } = "";    // Transport Mode (1: Road, 2: Rail, etc.)
     }
 
     public class ItemDetails
     {
         public ItemDetails()
         {
-            is_service = "N";
-            batch_details = new ItemBatchDetails();
-            attribute_details = new HashSet<ItemAttributeDetails>();
+            IsServc = "N";
+            BchDtls = new ItemBatchDetails();
+            AttribDtls = new HashSet<ItemAttributeDetails>();
         }
-        public int item_serial_number { get; set; }
-        public string product_description { get; set; }
-        public string is_service { get; set; }
-        public string hsn_code { get; set; }
-        public string bar_code { get; set; }
-        public int quantity { get; set; }
-        public int free_quantity { get; set; }
-        public string unit { get; set; }
-        public double unit_price { get; set; }
-        public double total_amount { get; set; }
-        public double pre_tax_value { get; set; }
-        public double discount { get; set; }
-        public double other_charge { get; set; }
-        public double assessable_value { get; set; }
-        public double gst_rate { get; set; }
-        public double igst_amount { get; set; }
-        public double cgst_amount { get; set; }
-        public double sgst_amount { get; set; }
-        public double cess_rate { get; set; }
-        public double cess_amount { get; set; }
-        public double cess_nonadvol_amount { get; set; }
-        public double state_cess_rate { get; set; }
-        public double state_cess_amount { get; set; }
-        public double state_cess_nonadvol_amount { get; set; }
-        public double total_item_value { get; set; }
-        public string country_origin { get; set; }
-        public string order_line_reference { get; set; }
-        public string product_serial_number { get; set; }
+        public string SlNo { get; set; } = "";              // Serial Number
+        public string PrdDesc { get; set; } = "";          // Product Description
+        public string IsServc { get; set; } = "";           // Is Service (Y/N)
 
-        public ItemBatchDetails batch_details { get; set; }
-        public IEnumerable<ItemAttributeDetails> attribute_details { get; set; }
+        public string HsnCd { get; set; } = "";            // HSN Code (note the space in key)
+
+        public string Barcde { get; set; } = "";            // Barcode
+        public double Qty { get; set; }                   // Quantity
+        public double FreeQty { get; set; }               // Free Quantity
+        public string Unit { get; set; } = "";             // Unit of measure
+        public decimal UnitPrice { get; set; }            // Unit Price
+        public decimal TotAmt { get; set; }               // Total Amount
+        public decimal Discount { get; set; }             // Discount
+        public decimal PreTaxVal { get; set; }            // Pre-tax Value
+        public decimal AssAmt { get; set; }               // Assessable Amount
+        public double GstRt { get; set; }                 // GST Rate
+        public decimal IgstAmt { get; set; }              // IGST Amount
+        public decimal CgstAmt { get; set; }              // CGST Amount
+        public decimal SgstAmt { get; set; }              // SGST Amount
+        public double CesRt { get; set; }                 // CESS Rate
+        public decimal CesAmt { get; set; }               // CESS Amount
+        public decimal CesNonAdvlAmt { get; set; }        // CESS Non-Advol Amount
+        public double StateCesRt { get; set; }            // State CESS Rate (note the trailing space)
+        public decimal StateCesAmt { get; set; }          // State CESS Amount
+        public decimal StateCesNonAdvlAmt { get; set; }   // State CESS Non-Advol Amount
+        public decimal OthChrg { get; set; }              // Other Charges
+        public decimal TotItemVal { get; set; }           // Total Item Value
+        public string OrdLineRef { get; set; } = "";       // Order Line Reference
+        public string OrgCntry { get; set; } = "";         // Origin Country
+        public string PrdSlNo { get; set; } = "";         // Product Serial Number
+        public ItemBatchDetails BchDtls { get; set; }              // Batch Details
+        public HashSet<ItemAttributeDetails> AttribDtls { get; set; }  // List of Attributes
+
     }
 
     public class ItemBatchDetails
     {
-        public ItemBatchDetails()
-        {
-            name = "";
-            expiry_date = "";
-            warranty_date = "";
-        }
-        public string name { get; set; }
-        public string expiry_date { get; set; }
-        public string warranty_date { get; set; }
+        public string Nm { get; set; } = "";
+        public string Expdt { get; set; } = "";
+        public string wrDt { get; set; } = "";
     }
 
     public class ItemAttributeDetails
     {
-        public ItemAttributeDetails()
-        {
-            item_attribute_details = "";
-            item_attribute_value = "";
-        }
-        public string item_attribute_details { get; set; }
-        public string item_attribute_value { get; set; }
-
+        public string Nm { get; set; } = "";
+        public string Val { get; set; } = "";
     }
 
     public class FinanceModel

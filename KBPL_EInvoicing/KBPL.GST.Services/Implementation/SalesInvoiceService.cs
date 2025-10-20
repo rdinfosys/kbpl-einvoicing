@@ -32,7 +32,7 @@ namespace KBPL.GST.Services.Implementation
         public async Task<EInvoiceModel> GetSalesInvoiceHeader(SalesInvoiceRequestModel requestModel)
         {
             EInvoiceModel eInvoiceModel = new EInvoiceModel();
-            eInvoiceModel.access_token = requestModel.AccessToken;
+            //eInvoiceModel.access_token = requestModel.AccessToken;
             DocumentDetails documentDetails = new DocumentDetails();
             var inputs = new Dictionary<string, string>();
             inputs.Add("compcode", requestModel.CompCode);
@@ -40,70 +40,70 @@ namespace KBPL.GST.Services.Implementation
             inputs.Add("invoiceno", requestModel.InvoiceNo);
             var eInvoicingDetails = await _oracleRepository.GetMultipleList<SellerDetails, BuyerDetails, ItemDetails, FinanceModel, Ewaybill_details, ShipDetails>("sales.Pkg_Salesinvoice.getdetailsforeinvoicing", inputs);
 
-            documentDetails.document_number = requestModel.InvoiceNo.Substring(2);
-            documentDetails.document_date = Convert.ToDateTime(requestModel.InvoiceDate).ToString("dd/MM/yyyy");
-            eInvoiceModel.document_details = documentDetails;
+            documentDetails.No = requestModel.InvoiceNo.Substring(2);
+            documentDetails.Dt = Convert.ToDateTime(requestModel.InvoiceDate).ToString("dd/MM/yyyy");
+            eInvoiceModel.DocDtls = documentDetails;
             var Seller_details = eInvoicingDetails.Item1[0];
-            eInvoiceModel.seller_details = Seller_details;
+            eInvoiceModel.SellerDtls = Seller_details;
 
             if (eInvoicingDetails.Item5.Any())
-                eInvoiceModel.ewaybill_details = eInvoicingDetails.Item5[0];
+                eInvoiceModel.EwbDtls = eInvoicingDetails.Item5[0];
             //eInvoiceModel.ewaybill_details
-            eInvoiceModel.dispatch_details = new DispatchDetails()
+            eInvoiceModel.DispDtls = new DispatchDetails()
             {
-                company_name = Seller_details.legal_name,
-                address1 = Seller_details.address1,
-                location = Seller_details.location,
-                pincode = Seller_details.pincode,
-                state_code = Seller_details.state_code
+                Nm = Seller_details.LglNm,
+                Addr1 = Seller_details.Addr1,
+                Loc = Seller_details.Loc,
+                Pin = Seller_details.Pin,
+                Stcd = Seller_details.Stcd
             };
 
             var BuyerDetails = eInvoicingDetails.Item2[0];
-            eInvoiceModel.buyer_details = BuyerDetails;
-            eInvoiceModel.ship_details = eInvoicingDetails.Item6[0];
+            eInvoiceModel.BuyerDtls = BuyerDetails;
+            eInvoiceModel.ShipDtls = eInvoicingDetails.Item6[0];
 
-            eInvoiceModel.reference_details = new ReferenceDeails()
+            eInvoiceModel.RefDtls = new ReferenceDeails()
             {
-                document_period_details = new DocPeriodDetails()
+                DocPerdDtls = new DocPeriodDetails()
                 {
                     invoice_period_end_date = Convert.ToDateTime(requestModel.InvoiceDate).ToString("dd/MM/yyyy"),
                     invoice_period_start_date = Convert.ToDateTime(requestModel.InvoiceDate).ToString("dd/MM/yyyy")
                 },
-                preceding_document_details = new Preceding_document_details()
+                PrecDocDtls = new Preceding_document_details()
                 {
-                    reference_of_original_invoice = requestModel.InvoiceNo.Substring(2),
-                    preceding_invoice_date = Convert.ToDateTime(requestModel.InvoiceDate).ToString("dd/MM/yyyy"),
+                    InvNo = requestModel.InvoiceNo.Substring(2),
+                    InvDt = Convert.ToDateTime(requestModel.InvoiceDate).ToString("dd/MM/yyyy"),
                 }
             };
 
             var finModel = eInvoicingDetails.Item4;
 
-            eInvoiceModel.item_list = eInvoicingDetails.Item3;
+            eInvoiceModel.ItemList = eInvoicingDetails.Item3;
             int i = 1;
-            eInvoiceModel.item_list.ToList().ForEach(x =>
+            eInvoiceModel.ItemList.ToList().ForEach(x =>
             {
-                x.item_serial_number = i;
-                x.unit = x.unit == "BAGS" ? "BAG" : "KGS";
+                x.SlNo = i.ToString();
+                x.Unit = x.Unit == "BAGS" ? "BAG" : "KGS";
                 i++;
             });
             var totDiscount = eInvoicingDetails.Item4.Where(x => x.AccoutType == "Discount").ToList();
             if (totDiscount.Any())
             {
-                eInvoiceModel.value_details.total_discount = 0;//totDiscount[0].Amount;
+                eInvoiceModel.ValDtls.Discount = 0;//totDiscount[0].Amount;
             }
 
-            eInvoiceModel.value_details.total_other_charge = eInvoicingDetails.Item4.Where(x => x.AccoutType == "TCS").ToList()[0].Amount;
+            eInvoiceModel.ValDtls.OthChrg = eInvoicingDetails.Item4.Where(x => x.AccoutType == "TCS").ToList()[0].Amount;
 
-            eInvoiceModel.value_details.total_assessable_value = Math.Round(eInvoiceModel.item_list.Sum(x => x.assessable_value), 2);
-            eInvoiceModel.value_details.total_cgst_value = Math.Round(eInvoiceModel.item_list.Sum(x => x.cgst_amount), 2);
-            eInvoiceModel.value_details.total_sgst_value = Math.Round(eInvoiceModel.item_list.Sum(x => x.sgst_amount), 2);
-            eInvoiceModel.value_details.total_igst_value = Math.Round(eInvoiceModel.item_list.Sum(x => x.igst_amount), 2); ;
+            eInvoiceModel.ValDtls.AssVal = Math.Round(eInvoiceModel.ItemList.Sum(x => x.AssAmt), 2);
+            eInvoiceModel.ValDtls.CgstVal = Math.Round(eInvoiceModel.ItemList.Sum(x => x.CgstAmt), 2);
+            eInvoiceModel.ValDtls.SgstVal = Math.Round(eInvoiceModel.ItemList.Sum(x => x.SgstAmt), 2);
+            eInvoiceModel.ValDtls.IgstVal = Math.Round(eInvoiceModel.ItemList.Sum(x => x.IgstAmt), 2); ;
 
-            eInvoiceModel.value_details.total_invoice_value = Math.Round(eInvoicingDetails.Item4.Where(x => x.AccoutType == "N").ToList()[0].Amount, 2);
+            eInvoiceModel.ValDtls.TotInvVal = Math.Round(eInvoicingDetails.Item4.Where(x => x.AccoutType == "N").ToList()[0].Amount, 2);
 
 
             if (eInvoicingDetails.Item4.Where(x => x.AccoutType == "R").Any())
-                eInvoiceModel.value_details.round_off_amount = eInvoicingDetails.Item4.Where(x => x.AccoutType == "R").ToList()[0].Amount;
+                eInvoiceModel.ValDtls.RndOffAmt = eInvoicingDetails.Item4.Where(x => x.AccoutType == "R").ToList()[0].Amount;
 
             return eInvoiceModel;
         }

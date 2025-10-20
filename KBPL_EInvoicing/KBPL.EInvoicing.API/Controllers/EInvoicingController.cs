@@ -1,4 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using KBPL.EInvoicing.API.Services;
+using KBPL.GST.Services.Implementation;
+using KBPL.Models.HelperModels;
+using KBPL.Models.RequestModel;
+using KBPL.Models.ResponseModel;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -6,10 +11,6 @@ using Newtonsoft.Json.Serialization;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using KBPL.GST.Services.Implementation;
-using KBPL.Models.HelperModels;
-using KBPL.Models.RequestModel;
-using KBPL.Models.ResponseModel;
 
 namespace KBPL.EInvoicing.API.Controllers
 {
@@ -34,16 +35,10 @@ namespace KBPL.EInvoicing.API.Controllers
             MastersIndiaAuthResponseModel mastersIndiaAuthResponseModel = new MastersIndiaAuthResponseModel();
             using (var client = new HttpClient())
             {
-                var p = new
-                {
-                    username = _masterIndiaAuthSettings.Username,
-                    password = _masterIndiaAuthSettings.Password,
-                    client_id = _masterIndiaAuthSettings.Client_id,
-                    client_secret = _masterIndiaAuthSettings.Client_secret,
-                    grant_type = _masterIndiaAuthSettings.Grant_type
-                };
-                //client.BaseAddress = new Uri(_masterIndiaAuthSettings.AuthApiUrl);
-                var response = await client.PostAsJsonAsync(_masterIndiaAuthSettings.AuthApiUrl, p);
+               
+                client.DefaultRequestHeaders.Add("gspappid", _masterIndiaAuthSettings.Client_id);
+                client.DefaultRequestHeaders.Add("gspappsecret", _masterIndiaAuthSettings.Client_secret);
+                var response = await client.PostAsync(_masterIndiaAuthSettings.AuthApiUrl, null);
                 var apiResponse = await response.Content.ReadAsStringAsync();
                 if (response.IsSuccessStatusCode)
                 {
@@ -67,16 +62,16 @@ namespace KBPL.EInvoicing.API.Controllers
             try
             {
                 _logger.LogInformation("requestModel : " + JsonConvert.SerializeObject(requestModel));
-                //var mastersIndiaAuthResponseModel = await GetAuthToken();
+                var mastersIndiaAuthResponseModel = await GetAuthToken();
 
-                //if (!mastersIndiaAuthResponseModel.IsSuccess)
-                //{
-                //    return Unauthorized("User Not Authenticated");
-                //}
+                if (!mastersIndiaAuthResponseModel.IsSuccess)
+                {
+                    return Unauthorized("User Not Authenticated");
+                }
 
-                requestModel.AccessToken = "730cb6928dd7cb23a031e6c3fa3413a6a8cc74ae";
+                //requestModel.AccessToken = "730cb6928dd7cb23a031e6c3fa3413a6a8cc74ae";
 
-                var result = await GetGenerateEInvoicingAPI(requestModel, _logger);
+                var result = await GetGenerateEInvoicingAPI(requestModel, mastersIndiaAuthResponseModel, _logger);
 
                 return Ok(result);
 
@@ -90,14 +85,14 @@ namespace KBPL.EInvoicing.API.Controllers
         }
 
 
-        private async Task<string> GetGenerateEInvoicingAPI(SalesInvoiceRequestModel requestModel, ILogger<EInvoicingController> logger)
+        private async Task<string> GetGenerateEInvoicingAPI(SalesInvoiceRequestModel requestModel, MastersIndiaAuthResponseModel mastersIndiaAuthResponseModel, ILogger<EInvoicingController> logger)
         {
             //requestModel.AccessToken = "a78e74508f285f5cd120716b81d8e91f2af96326";
 
             SalesInvoiceService salesInvoiceService = new SalesInvoiceService();
             var res = await salesInvoiceService.GetSalesInvoiceHeader(requestModel);
 
-            logger.LogInformation($"{requestModel.InvoiceNo} Input JSON : { JsonConvert.SerializeObject(res)}");
+            logger.LogInformation($"{requestModel.InvoiceNo} Input JSON : {JsonConvert.SerializeObject(res)}");
 
             var serializerSettings = new JsonSerializerSettings
             {
@@ -105,15 +100,27 @@ namespace KBPL.EInvoicing.API.Controllers
             };
 
             dynamic apiResonse;
+
             EInvoicingModel apiResonse1;
             string EInvoiceUrl = _masterIndiaAuthSettings.EInvoiceApiUrl;
             using (var client = new HttpClient())
             {
                 var stringJSON = JsonConvert.SerializeObject(res, serializerSettings);
 
+                //client.DefaultRequestHeaders.Add("Content-Type", "application/json");
+                client.DefaultRequestHeaders.Add("user_name", _masterIndiaAuthSettings.Username);
+                client.DefaultRequestHeaders.Add("password", _masterIndiaAuthSettings.Password);
+                client.DefaultRequestHeaders.Add("gstin", _masterIndiaAuthSettings.Gstin);
+                client.DefaultRequestHeaders.Add("requestid", RandomGenerator.GenerateRandomAlphanumeric(12));
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {mastersIndiaAuthResponseModel.Access_token}");
+
                 client.BaseAddress = new Uri(EInvoiceUrl);
-                var response = await client.PostAsJsonAsync("/generateEinvoice", res);
+                var response = await client.PostAsJsonAsync("enriched/ei/invoice", res);
                 var apiResponse = await response.Content.ReadAsStringAsync();
+
+                logger.LogInformation($"{requestModel.InvoiceNo} Output JSON : {JsonConvert.SerializeObject(apiResponse)}");
+
+
                 if (response.IsSuccessStatusCode)
                 {
                     apiResonse1 = (JsonConvert.DeserializeObject<EInvoicingModel>(apiResponse));

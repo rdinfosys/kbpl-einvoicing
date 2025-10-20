@@ -1,3 +1,4 @@
+using KBPL.Models.HelperModels;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -31,10 +32,10 @@ namespace KBPL.EInvoicing.API
             });
 
             //Master India configuration
-            //services.Configure<MasterIndiaAuthSettings>(Configuration.GetSection("MasterIndiaAuthSettings"));
+            services.Configure<MasterIndiaAuthSettings>(Configuration.GetSection("MasterIndiaAuthSettings"));
 
             ////DBConnectionSettings 
-            //services.Configure<DBConnectionSettings>(Configuration.GetSection("DBConnectionstring"));
+            services.Configure<DBConnectionSettings>(Configuration.GetSection("DBConnectionstring"));
 
             // Register the Swagger generator configuration
             services.AddSwaggerGen(c =>
