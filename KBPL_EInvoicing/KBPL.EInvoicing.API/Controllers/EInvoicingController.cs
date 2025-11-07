@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace KBPL.EInvoicing.API.Controllers
@@ -35,7 +36,7 @@ namespace KBPL.EInvoicing.API.Controllers
             MastersIndiaAuthResponseModel mastersIndiaAuthResponseModel = new MastersIndiaAuthResponseModel();
             using (var client = new HttpClient())
             {
-               
+
                 client.DefaultRequestHeaders.Add("gspappid", _masterIndiaAuthSettings.Client_id);
                 client.DefaultRequestHeaders.Add("gspappsecret", _masterIndiaAuthSettings.Client_secret);
                 var response = await client.PostAsync(_masterIndiaAuthSettings.AuthApiUrl, null);
@@ -100,8 +101,8 @@ namespace KBPL.EInvoicing.API.Controllers
             };
 
             dynamic apiResonse;
-
-            EInvoicingModel apiResonse1;
+            string requestId = RandomGenerator.GenerateRandomAlphanumeric(10);
+            IrnResponse apiResonse1;
             string EInvoiceUrl = _masterIndiaAuthSettings.EInvoiceApiUrl;
             using (var client = new HttpClient())
             {
@@ -111,11 +112,14 @@ namespace KBPL.EInvoicing.API.Controllers
                 client.DefaultRequestHeaders.Add("user_name", _masterIndiaAuthSettings.Username);
                 client.DefaultRequestHeaders.Add("password", _masterIndiaAuthSettings.Password);
                 client.DefaultRequestHeaders.Add("gstin", _masterIndiaAuthSettings.Gstin);
-                client.DefaultRequestHeaders.Add("requestid", RandomGenerator.GenerateRandomAlphanumeric(12));
+                client.DefaultRequestHeaders.Add("requestid", requestId);
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {mastersIndiaAuthResponseModel.Access_token}");
 
                 client.BaseAddress = new Uri(EInvoiceUrl);
-                var response = await client.PostAsJsonAsync("enriched/ei/invoice", res);
+
+                var content = new StringContent(stringJSON, Encoding.UTF8, "application/json");
+
+                var response = await client.PostAsync("enriched/ei/api/invoice", content);
                 var apiResponse = await response.Content.ReadAsStringAsync();
 
                 logger.LogInformation($"{requestModel.InvoiceNo} Output JSON : {JsonConvert.SerializeObject(apiResponse)}");
@@ -123,36 +127,38 @@ namespace KBPL.EInvoicing.API.Controllers
 
                 if (response.IsSuccessStatusCode)
                 {
-                    apiResonse1 = (JsonConvert.DeserializeObject<EInvoicingModel>(apiResponse));
-
+                    apiResonse1 = (JsonConvert.DeserializeObject<IrnResponse>(apiResponse));
+                    apiResonse1.RequestId = requestId;
                     //if (apiResonse1.Results.status.Equals("Success"))
                     //{
-                    if (apiResonse1.Results.message == null)
-                    {
-                        apiResonse1.Results.message = new EInvoicingAPIResponse();
-                    }
+                    //if (apiResonse1.Result.message == null)
+                    //{
+                    //    apiResonse1.Result.message = new EInvoicingAPIResponse();
+                    //}
                     try
                     {
-                        apiResonse1.Results.message.InvoiceNo = requestModel.InvoiceNo;
-                        apiResonse1.Results.message.InvoiceDate = requestModel.InvoiceDate;
-                        apiResonse1.Results.message.CompCode = requestModel.CompCode;
-                        apiResonse1.Results.message.FyCode = requestModel.FyCode;
-                        apiResonse1.Results.message.Ackdt = Convert.ToDateTime(apiResonse1.Results.message.Ackdt).ToString("dd-MMM-yyyy");
-                        apiResonse1.Results.message.EwbDt = Convert.ToDateTime(apiResonse1.Results.message.EwbDt).ToString("dd-MMM-yyyy");
-                        apiResonse1.Results.message.EwbValidTill = Convert.ToDateTime(apiResonse1.Results.message.EwbValidTill).ToString("dd-MMM-yyyy");
+                        apiResonse1.Result.InvoiceNo = requestModel.InvoiceNo;
+                        apiResonse1.Result.InvoiceDate = requestModel.InvoiceDate;
+                        apiResonse1.Result.CompCode = requestModel.CompCode;
+                        apiResonse1.Result.FyCode = requestModel.FyCode;
+                        apiResonse1.Status = apiResonse1.Success ? "S" : "E";
+
+                        apiResonse1.Result.AckDt = Convert.ToDateTime(apiResonse1.Result.AckDt).ToString("dd-MMM-yyyy");
+                        apiResonse1.Result.EwbDt = Convert.ToDateTime(apiResonse1.Result.EwbDt).ToString("dd-MMM-yyyy");
+                        apiResonse1.Result.EwbValidTill = Convert.ToDateTime(apiResonse1.Result.EwbValidTill).ToString("dd-MMM-yyyy");
                         var res1 = await salesInvoiceService.SaveSalesInvoiceEInvocingData(apiResonse1);
-                        //}
+
                     }
                     catch (Exception e)
                     {
                         logger.LogError($"{requestModel.InvoiceNo} SQL Error : {e.Message}, {e.StackTrace}");
                     }
 
-                    if (!apiResonse1.Results.status.Contains("Success"))
-                    {
-                        logger.LogInformation($"{requestModel.InvoiceNo} Failed : {apiResonse1.Results.errorMessage}");
-                        return apiResonse1.Results.errorMessage;
-                    }
+                    //if (!apiResonse1.Results.status.Contains("Success"))
+                    //{
+                    //    logger.LogInformation($"{requestModel.InvoiceNo} Failed : {apiResonse1.Results.errorMessage}");
+                    //    return apiResonse1.Results.errorMessage;
+                    //}
 
                     logger.LogInformation($"{requestModel.InvoiceNo} Success : {apiResponse}");
 

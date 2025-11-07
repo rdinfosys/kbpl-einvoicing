@@ -41,7 +41,7 @@ namespace KBPL.GST.Services.Implementation
             var eInvoicingDetails = await _oracleRepository.GetMultipleList<SellerDetails, BuyerDetails, ItemDetails, FinanceModel, Ewaybill_details, ShipDetails>("sales.Pkg_Salesinvoice.getdetailsforeinvoicing", inputs);
 
             documentDetails.No = requestModel.InvoiceNo.Substring(2);
-            documentDetails.Dt = Convert.ToDateTime(requestModel.InvoiceDate).ToString("dd/MM/yyyy");
+            documentDetails.Dt = Convert.ToDateTime(requestModel.InvoiceDate).ToString("dd/MM/yyyy").Replace("-", "/");
             eInvoiceModel.DocDtls = documentDetails;
             var Seller_details = eInvoicingDetails.Item1[0];
             eInvoiceModel.SellerDtls = Seller_details;
@@ -62,19 +62,19 @@ namespace KBPL.GST.Services.Implementation
             eInvoiceModel.BuyerDtls = BuyerDetails;
             eInvoiceModel.ShipDtls = eInvoicingDetails.Item6[0];
 
-            eInvoiceModel.RefDtls = new ReferenceDeails()
-            {
-                DocPerdDtls = new DocPeriodDetails()
-                {
-                    invoice_period_end_date = Convert.ToDateTime(requestModel.InvoiceDate).ToString("dd/MM/yyyy"),
-                    invoice_period_start_date = Convert.ToDateTime(requestModel.InvoiceDate).ToString("dd/MM/yyyy")
-                },
-                PrecDocDtls = new Preceding_document_details()
-                {
-                    InvNo = requestModel.InvoiceNo.Substring(2),
-                    InvDt = Convert.ToDateTime(requestModel.InvoiceDate).ToString("dd/MM/yyyy"),
-                }
-            };
+            //eInvoiceModel.RefDtls = new ReferenceDeails()
+            //{
+            //    DocPerdDtls = new DocPeriodDetails()
+            //    {
+            //        InvEndDt = Convert.ToDateTime(requestModel.InvoiceDate).ToString("dd/MM/yyyy"),
+            //        InvStDt = Convert.ToDateTime(requestModel.InvoiceDate).ToString("dd/MM/yyyy")
+            //    },
+            //    PrecDocDtls = new Preceding_document_details()
+            //    {
+            //        InvNo = requestModel.InvoiceNo.Substring(2),
+            //        InvDt = Convert.ToDateTime(requestModel.InvoiceDate).ToString("dd/MM/yyyy"),
+            //    }
+            //};
 
             var finModel = eInvoicingDetails.Item4;
 
@@ -108,24 +108,24 @@ namespace KBPL.GST.Services.Implementation
             return eInvoiceModel;
         }
 
-        public async Task<int> SaveSalesInvoiceEInvocingData(EInvoicingModel eInvoicingModel)
+        public async Task<int> SaveSalesInvoiceEInvocingData(IrnResponse eInvoicingModel)
         {
             Dictionary<string, string> dynamicParameters = new Dictionary<string, string>();
-            dynamicParameters.Add("errorMessage", eInvoicingModel.Results.errorMessage);
-            dynamicParameters.Add("InfoDtls", eInvoicingModel.Results.InfoDtls);
-            dynamicParameters.Add("status", eInvoicingModel.Results.status);
-            dynamicParameters.Add("requestId", eInvoicingModel.Results.requestId);
-            dynamicParameters.Add("AckNo", eInvoicingModel.Results.message.AckNo);
-            dynamicParameters.Add("AckDate", eInvoicingModel.Results.message.Ackdt);
-            dynamicParameters.Add("Irn", eInvoicingModel.Results.message.Irn);
-            dynamicParameters.Add("SignedQRCode", eInvoicingModel.Results.message.SignedQRCode);
-            dynamicParameters.Add("InvoiceNo", eInvoicingModel.Results.message.InvoiceNo);
-            dynamicParameters.Add("InvoiceDate", eInvoicingModel.Results.message.InvoiceDate);
-            dynamicParameters.Add("CompCode", eInvoicingModel.Results.message.CompCode);
-            dynamicParameters.Add("FyCode", eInvoicingModel.Results.message.FyCode);
-            dynamicParameters.Add("EwbNo", eInvoicingModel.Results.message.EwbNo);
-            dynamicParameters.Add("EwbDt", eInvoicingModel.Results.message.EwbDt);
-            dynamicParameters.Add("EwbValidTill", eInvoicingModel.Results.message.EwbValidTill);
+            dynamicParameters.Add("errorMessage", eInvoicingModel.Message);
+            dynamicParameters.Add("InfoDtls", "");
+            dynamicParameters.Add("status", eInvoicingModel.Status);
+            dynamicParameters.Add("requestId", eInvoicingModel.RequestId);
+            dynamicParameters.Add("AckNo", Convert.ToString(eInvoicingModel.Result.AckNo));
+            dynamicParameters.Add("AckDate", eInvoicingModel.Result.AckDt);
+            dynamicParameters.Add("Irn", eInvoicingModel.Result.Irn);
+            dynamicParameters.Add("SignedQRCode", eInvoicingModel.Result.SignedQRCode);
+            dynamicParameters.Add("InvoiceNo", eInvoicingModel.Result.InvoiceNo);
+            dynamicParameters.Add("InvoiceDate", eInvoicingModel.Result.InvoiceDate);
+            dynamicParameters.Add("CompCode", eInvoicingModel.Result.CompCode);
+            dynamicParameters.Add("FyCode", eInvoicingModel.Result.FyCode);
+            dynamicParameters.Add("EwbNo", Convert.ToString(eInvoicingModel.Result.EwbNo));
+            dynamicParameters.Add("EwbDt", eInvoicingModel.Result.EwbDt);
+            dynamicParameters.Add("EwbValidTill", eInvoicingModel.Result.EwbValidTill);
 
             var result = await _oracleRepository.ExecuteQuery("sales.Pkg_Salesinvoice.updatedetailsforeinvoicing", dynamicParameters);
             return result;
