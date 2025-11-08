@@ -27,7 +27,7 @@ namespace KBPL.Oracle.DataAccess
         private readonly DBConnectionSettings _dBConnectionSettings;
         public ConnectionFactory()
         {
-            _connectionString = "Data Source=192.168.2.114/orcl;User ID=invent;Password=invent;Incr Pool Size=5;Decr Pool Size=2;"; //_dBConnectionSettings.DBConnectionstring;
+            _connectionString = "Data Source=192.168.2.114/orcl;User ID=invent;Password=invent;Incr Pool Size=5;Decr Pool Size=2;Max Pool Size=100;Min Pool Size=10;"; //_dBConnectionSettings.DBConnectionstring;
             //_connectionString = "Data Source=192.168.1.201/KBPLtest;User ID=invent;Password=invent;Incr Pool Size=5;Decr Pool Size=2;"; //_dBConnectionSettings.DBConnectionstring;
 
 
